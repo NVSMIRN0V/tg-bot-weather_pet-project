@@ -1,11 +1,13 @@
 import requests
 import datetime
-from cfg import TGBOT_TOKEN
+
+from cfg import OPENWEATHERMAP_TOKEN
+from translate import translate_from_eng_to_ru
 
 
 def get_beautiful_cityname_str(city: str) -> str:
     ''' Функция формирует строку с названием города'''
-    result = '\U0001F3E1 Город: ' + city
+    result = '\U0001F3E1 Город: ' + translate_from_eng_to_ru(city)
     return result
 
 
@@ -72,16 +74,16 @@ def get_beautiful_datetime_str() -> str:
     return result
 
 
-def get_weather(city: str):
+def get_current_weather_forecast(city: str):
     # запрос
-    request = requests.get(f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={TGBOT_TOKEN}&units=metric')
+    request = requests.get(f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHERMAP_TOKEN}&units=metric')
     response = request.json()
 
     # для проверки времени суток (get_beautiful_weather_description(arg, sunrise, sunset))
     sunrise = datetime.datetime.fromtimestamp(response['sys']['sunrise']).time()
     sunset = datetime.datetime.fromtimestamp(response['sys']['sunset']).time()
 
-    # извлечение нужных данных из ответа на запрос
+    # извлечение нужных данных из ответа на запрос и формирование требуемого вида через вспомогательные функции
     city = get_beautiful_cityname_str(response['name'])
     weather_description = get_beautiful_weather_description_str(response['weather'][0]['main'], sunrise, sunset)
     temperature = get_beautiful_temperature_str(response['main']['temp'])
@@ -92,4 +94,7 @@ def get_weather(city: str):
     today = get_beautiful_datetime_str()
 
     # печать ответа пользователю
-    print(city, weather_description, humidity)
+    print(city, weather_description, humidity, goodbye_message)
+
+
+get_current_weather_forecast('Москва')
