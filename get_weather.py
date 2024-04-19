@@ -1,3 +1,4 @@
+import aiogram
 import requests
 import datetime
 
@@ -74,27 +75,37 @@ def get_beautiful_datetime_str() -> str:
     return result
 
 
-def get_current_weather_forecast(city: str):
-    # запрос
-    request = requests.get(f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHERMAP_TOKEN}&units=metric')
-    response = request.json()
+async def get_current_weather_forecast(message: aiogram.types.Message) -> None:
+    '''Функция формирует ответ на запрос погоды'''
+    try:
+        # запрос
+        request = requests.get(f'https://api.openweathermap.org/data/2.5/weather?q={message.text}&appid={OPENWEATHERMAP_TOKEN}&units=metric')
+        response = request.json()
 
-    # для проверки времени суток (get_beautiful_weather_description(arg, sunrise, sunset))
-    sunrise = datetime.datetime.fromtimestamp(response['sys']['sunrise']).time()
-    sunset = datetime.datetime.fromtimestamp(response['sys']['sunset']).time()
+        # для проверки времени суток (get_beautiful_weather_description(arg, sunrise, sunset))
+        sunrise = datetime.datetime.fromtimestamp(response['sys']['sunrise']).time()
+        sunset = datetime.datetime.fromtimestamp(response['sys']['sunset']).time()
 
-    # извлечение нужных данных из ответа на запрос и формирование требуемого вида через вспомогательные функции
-    city = get_beautiful_cityname_str(response['name'])
-    weather_description = get_beautiful_weather_description_str(response['weather'][0]['main'], sunrise, sunset)
-    temperature = get_beautiful_temperature_str(response['main']['temp'])
-    humidity = get_beautiful_humidity_str(response['main']['humidity'])
-    pressure = get_beautiful_pressure_str(response['main']['pressure'])
-    wind_description = get_beautiful_wind_description_str(response['wind']['speed'])
-    goodbye_message = get_beautiful_goodbye_message_str()
-    today = get_beautiful_datetime_str()
+        # извлечение нужных данных из ответа на запрос и формирование требуемого вида через вспомогательные функции
+        city = get_beautiful_cityname_str(response['name'])
+        weather_description = get_beautiful_weather_description_str(response['weather'][0]['main'], sunrise, sunset)
+        temperature = get_beautiful_temperature_str(response['main']['temp'])
+        humidity = get_beautiful_humidity_str(response['main']['humidity'])
+        pressure = get_beautiful_pressure_str(response['main']['pressure'])
+        wind_description = get_beautiful_wind_description_str(response['wind']['speed'])
+        goodbye_message = get_beautiful_goodbye_message_str()
+        today = get_beautiful_datetime_str()
 
-    # печать ответа пользователю
-    print(city, weather_description, humidity, goodbye_message)
-
-
-get_current_weather_forecast('Москва')
+        # печать ответа пользователю
+        await message.reply(
+                f'{today}\n'
+                f'{city}\n'
+                f'{weather_description}\n'
+                f'{temperature}\n'
+                f'{humidity}\n'
+                f'{pressure}\n'
+                f'{wind_description}\n'
+                f'{goodbye_message}\n'
+        )
+    except:
+        await message.reply('Проверьте корректность введенных данных.')
